@@ -31,10 +31,16 @@ void display_channel(struct ChannelInfo channel)
     char cstr[16];
     itoa(channel.index, cstr, 10);
 
-    // TODO handle numbers more than 1 character long
+    // TODO handle numbers more than 1 character long better
     tft.setCursor(110, 110);
     tft.setTextSize(5);
-    tft.setTextColor(tft.color565(255, 255, 255), tft.color565(10, 69, 120));
+    tft.setTextColor(tft.color565(255, 255, 255));
+    tft.fillRect(110,110, 100,40, DISPLAY_BACKGROUND_COLOR);
+    if(channel.is_virtual)
+    {
+        tft.print("v");
+    }
+    
     tft.println(cstr);
     if(channel.color)
     {
@@ -74,6 +80,39 @@ void display_menu(struct DisplayMenu menu)
     }
 }
 
+void display_prompt(struct DisplayPrompt prompt)
+{
+    tft.fillScreen(DISPLAY_BACKGROUND_COLOR);
+    tft.setCursor(0, 0);
+    tft.setTextSize(4);
+    tft.setTextWrap(true);
+    tft.println(prompt.prompt);
+    tft.setTextWrap(false);
+
+    int start = prompt.selected - 1;
+    if (start < 0)
+        start = 0;
+
+    int end = start + DISPLAY_MENU_MAX_DRAWN-1;
+    if (end > prompt.length)
+    {
+        end = prompt.length;
+    }
+
+    tft.setCursor(0, 120);
+    tft.setTextSize(3);
+
+    for (int i = start; i < end; i++)
+    {
+        if (i == prompt.selected)
+        {
+            tft.print(">");
+        }
+        tft.print(" ");
+        tft.println(prompt.options[i].title);
+    }
+}
+
 void display_handle_update()
 {
     struct DisplayContent content;
@@ -97,7 +136,14 @@ void display_handle_update()
     {
         display_menu(content.menu);
     }
+    else if (content.type == DisplayContentType::prompt)
+    {
+        display_prompt(content.prompt);
+    }
 }
+
+int animation_state;
+unsigned long animation_timer;
 
 void display_task(void *parameter)
 {
@@ -118,6 +164,23 @@ void display_task(void *parameter)
         if ((ulNotifiedValue & DISPLAY_EVENT_UPDATE) != 0)
         {
             display_handle_update();
+        }
+
+        if(menu_state == MenuState::programming)
+        {
+            if(millis() - animation_timer > 1000)
+            {
+                if(animation_state)
+                {
+                    tft.fillCircle(40, 200, 10, tft.color565(255, 0,0));
+                }
+                else
+                {
+                    tft.fillCircle(40, 200, 10, DISPLAY_BACKGROUND_COLOR);
+                }
+                animation_state = !animation_state;
+                animation_timer = millis();
+            }
         }
     }
 }

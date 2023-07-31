@@ -37,7 +37,8 @@ void rotary_encoder_init()
   rotaryEncoder.setup(readEncoderISR);
 
   bool circleValues = false;
-  rotaryEncoder.setBoundaries(1, 512, circleValues);
+  rotaryEncoder.setBoundaries(0, 512, circleValues);
+  rotaryEncoder.setEncoderValue(1);
 
   rotaryEncoder.setAcceleration(50);
 }
@@ -78,4 +79,16 @@ void rotary_encoder_task(void *parameter)
 void start_task_rotary_encoder()
 {
   xTaskCreate(rotary_encoder_task, "rotary_encoder_task", 1024, NULL, 1, &rotary_encoder_task_handle);
+}
+
+extern uint16_t num_virtual_channels;
+
+void rotary_encoder_set_mode_channels(int current)
+{
+  rotary_encoder_config.min_value = 0-num_virtual_channels;
+  rotary_encoder_config.max_value = 512;
+  rotary_encoder_config.circle = false;
+  rotary_encoder_config.start_index = current;
+
+  xTaskNotify(rotary_encoder_task_handle, ROTARY_EVENT_RESET, eSetValueWithOverwrite);
 }

@@ -33,7 +33,7 @@ void dmx_init()
 void dmx_channels_to_dmx(struct ChannelInfo *channels)
 {
     for (int i = 1; i < DMX_PACKET_SIZE; i++) {
-      dmx_data[i] = map(channels[i-1].value, 0, 65535, 0, 255);
+      dmx_data[i] = map(channels[i-1].value, 0, CHANNEL_MAX_VALUE, 0, 255);
     }
 
     dmx_write(dmxPort, dmx_data, DMX_PACKET_SIZE);

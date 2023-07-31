@@ -14,6 +14,8 @@ struct RotaryEncoderConfig
 
 void start_task_rotary_encoder();
 
+void rotary_encoder_set_mode_channels(int current);
+
 extern int rotary_encoder_value;
 extern struct RotaryEncoderConfig rotary_encoder_config;
 extern TaskHandle_t rotary_encoder_task_handle;
