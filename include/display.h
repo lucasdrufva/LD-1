@@ -2,25 +2,24 @@
 
 #include <Arduino.h>
 
+#include "main.h"
+
 #define DISPLAY_EVENT_UPDATE 0x01
+#define DISPLAY_MENU_MAX_DRAWN 5
+#define DISPLAY_BACKGROUND_COLOR 0x0A2F
 
 enum DisplayContentType { channel, menu };
 
-struct DisplayChannelInfo
-{
-    int number;
-    char name[16];
-    uint16_t color;
-};
-
 struct DisplayMenuOption
 {
-    char name[16];
+    char title[16];
 };
 
 struct DisplayMenu
 {
-    struct DisplayMenuOption options[5];
+    uint8_t selected;
+    uint8_t length;
+    struct DisplayMenuOption options[16];
 };
 
 struct DisplayContent
@@ -28,7 +27,7 @@ struct DisplayContent
     DisplayContentType type;
     union
     {
-        struct DisplayChannelInfo channel_info;
+        struct ChannelInfo channel_info;
         struct DisplayMenu menu;
     };
 };

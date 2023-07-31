@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <esp_dmx.h>
 
+#include "main.h"
+
 /* First, lets define the hardware pins that we are using with our ESP32. We
   need to define which pin is transmitting data and which pin is receiving data.
   DMX circuits also often need to be told when we are transmitting and when we
@@ -28,10 +30,10 @@ void dmx_init()
     dmx_driver_install(dmxPort, DMX_DEFAULT_INTR_FLAGS);
 }
 
-void dmx_channel_values_to_dmx(uint16_t *channel_values)
+void dmx_channels_to_dmx(struct ChannelInfo *channels)
 {
     for (int i = 1; i < DMX_PACKET_SIZE; i++) {
-      dmx_data[i] = map(channel_values[i-1], 0, 65535, 0, 255);
+      dmx_data[i] = map(channels[i-1].value, 0, 65535, 0, 255);
     }
 
     dmx_write(dmxPort, dmx_data, DMX_PACKET_SIZE);

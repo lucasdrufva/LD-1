@@ -13,6 +13,8 @@ TaskHandle_t display_task_handle;
 SemaphoreHandle_t display_content_mutex;
 struct DisplayContent display_content;
 
+DisplayContentType previous_type;
+
 void display_init()
 {
     pinMode(DISPLAY_PIN_CS, OUTPUT);
@@ -21,20 +23,55 @@ void display_init()
 
     tft.init(240, 240);
     tft.setRotation(2);
-    tft.fillScreen(tft.color565(10, 69, 120));
+    tft.fillScreen(DISPLAY_BACKGROUND_COLOR);
 }
 
-void display_channel(int channel)
+void display_channel(struct ChannelInfo channel)
 {
     char cstr[16];
-    itoa(channel, cstr, 10);
+    itoa(channel.index, cstr, 10);
 
-
-    //TODO handle numbers more than 1 character long
-    tft.setCursor(110,110);
+    // TODO handle numbers more than 1 character long
+    tft.setCursor(110, 110);
     tft.setTextSize(5);
-    tft.setTextColor(tft.color565(255,255,255), tft.color565(10, 69, 120));
+    tft.setTextColor(tft.color565(255, 255, 255), tft.color565(10, 69, 120));
     tft.println(cstr);
+    if(channel.color)
+    {
+        Serial.println(channel.color);
+        tft.fillRoundRect(180,180, 30,30, 5, channel.color);
+    }
+    else
+    {
+        tft.fillRoundRect(180,180, 30,30, 5, DISPLAY_BACKGROUND_COLOR);
+    }
+}
+
+void display_menu(struct DisplayMenu menu)
+{
+    int start = menu.selected - 1;
+    if (start < 0)
+        start = 0;
+
+    int end = start + DISPLAY_MENU_MAX_DRAWN;
+    if (end > menu.length)
+    {
+        end = menu.length;
+    }
+
+    tft.fillScreen(DISPLAY_BACKGROUND_COLOR);
+    tft.setCursor(0, 0);
+    tft.setTextSize(5);
+
+    for (int i = start; i < end; i++)
+    {
+        if (i == menu.selected)
+        {
+            tft.print(">");
+        }
+        tft.print(" ");
+        tft.println(menu.options[i].title);
+    }
 }
 
 void display_handle_update()
@@ -45,11 +82,21 @@ void display_handle_update()
     content = display_content;
     xSemaphoreGive(display_content_mutex);
 
-    if(content.type == DisplayContentType::channel)
+    if(content.type != previous_type)
     {
-        display_channel(content.channel_info.number);
+        tft.fillScreen(DISPLAY_BACKGROUND_COLOR);
     }
 
+    previous_type = content.type;
+
+    if (content.type == DisplayContentType::channel)
+    {
+        display_channel(content.channel_info);
+    }
+    else if (content.type == DisplayContentType::menu)
+    {
+        display_menu(content.menu);
+    }
 }
 
 void display_task(void *parameter)
@@ -60,7 +107,7 @@ void display_task(void *parameter)
 
     uint32_t ulNotifiedValue;
 
-    for(;;)
+    for (;;)
     {
         xTaskNotifyWait(
             0x00,
