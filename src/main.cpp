@@ -24,7 +24,6 @@ uint16_t before_flash_slider_value = 0;
 
 int current_channel = 1;
 int programming_channel;
-// uint16_t channel_values[512];
 
 ChannelInfo channels_data[1024];
 ChannelInfo *channels = &channels_data[512];
@@ -90,13 +89,13 @@ void button_updated(bool new_state)
 {
     if (new_state == HIGH)
     {
-        before_flash_slider_value = channels[current_channel - 1].value; // channel_values[current_channel - 1];
-        // channel_values[current_channel - 1] = 65535;
+        before_flash_slider_value = channels[current_channel - 1].value;
+        channels[current_channel-1].value = 65535;
     }
     else
     {
         channels[current_channel - 1].value = before_flash_slider_value;
-        // channel_values[current_channel - 1] = before_flash_slider_value;
+        channels[current_channel-1].value = before_flash_slider_value;
     }
     slider_move(channels[current_channel - 1].value);
     dmx_channels_to_dmx(channels);

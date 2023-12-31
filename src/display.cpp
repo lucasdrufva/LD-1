@@ -1,13 +1,16 @@
 #include "display.h"
 
 #include <Arduino.h>
-#include "Adafruit_ST7789.h"
 
 #define DISPLAY_PIN_CS 21
 #define DISPLAY_PIN_RST 4
 #define DISPLAY_PIN_DC 12
 
-Adafruit_ST7789 tft = Adafruit_ST7789(DISPLAY_PIN_CS, DISPLAY_PIN_DC, 18, 5, DISPLAY_PIN_RST);
+#include <TFT_eSPI.h> // Graphics and font library for ST7735 driver chip
+#include <SPI.h>
+
+TFT_eSPI tft = TFT_eSPI(); 
+
 
 TaskHandle_t display_task_handle;
 SemaphoreHandle_t display_content_mutex;
@@ -21,8 +24,8 @@ void display_init()
     pinMode(DISPLAY_PIN_RST, OUTPUT);
     pinMode(DISPLAY_PIN_DC, OUTPUT);
 
-    tft.init(240, 240);
-    tft.setRotation(2);
+    tft.init();
+    tft.setRotation(0);
     tft.fillScreen(DISPLAY_BACKGROUND_COLOR);
 }
 
@@ -35,7 +38,7 @@ void display_channel(struct ChannelInfo channel)
     tft.setCursor(110, 110);
     tft.setTextSize(5);
     tft.setTextColor(tft.color565(255, 255, 255));
-    tft.fillRect(110,110, 100,40, DISPLAY_BACKGROUND_COLOR);
+    tft.fillScreen(DISPLAY_BACKGROUND_COLOR);
     if(channel.is_virtual)
     {
         tft.print("v");
